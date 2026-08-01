@@ -1,10 +1,10 @@
-'use strict';
+import { jest } from '@jest/globals';
 
 const pendingReads = [];
 
-jest.mock('graceful-fs', () => {
+jest.unstable_mockModule('graceful-fs', () => {
   const original = jest.requireActual('graceful-fs');
-  return {
+  const mocked = {
     ...original,
     promises: {
       ...original.promises,
@@ -16,10 +16,11 @@ jest.mock('graceful-fs', () => {
       ),
     },
   };
+  return { default: mocked, ...mocked };
 });
 
-const gracefulFS = require('graceful-fs');
-const { CachedFileSystem } = require('../out/fs');
+const gracefulFS = (await import('graceful-fs')).default;
+const { CachedFileSystem } = await import('../out/fs.js');
 
 const flushMicrotasks = () => new Promise((r) => setImmediate(r));
 

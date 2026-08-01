@@ -1,4 +1,4 @@
-import { Node } from './types';
+import { Node } from './types.js';
 
 export function isIdentifierRead(node: Node, parent: Node) {
   switch (parent.type) {

@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 
 import { join, dirname, relative, isAbsolute, sep } from 'path';
-import { promises, statSync, lstatSync } from 'graceful-fs';
+import fs from 'graceful-fs';
+const { promises, statSync, lstatSync, realpathSync } = fs;
+import { pathToFileURL } from 'url';
 const { copyFile, mkdir, rm } = promises;
-import { nodeFileTrace } from './node-file-trace';
-import { NodeFileTraceReasons } from './types';
+import { nodeFileTrace } from './node-file-trace.js';
+import { NodeFileTraceReasons } from './types.js';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
 
 function printStack(
   file: string,
@@ -112,8 +117,11 @@ async function cli(
   return stdout.join('\n');
 }
 
-if (require.main === module) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
+) {
   cli().then(console.log).catch(console.error);
 }
 
-module.exports = cli;
+export default cli;

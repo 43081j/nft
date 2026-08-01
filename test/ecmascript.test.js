@@ -1,8 +1,13 @@
-const { promises, mkdirSync, rmSync } = require('fs');
-const path = require('path');
-const { nodeFileTrace } = require('../out/node-file-trace');
-const os = require('os');
+import { promises, mkdirSync, rmSync } from 'fs';
+import path from 'path';
+import os from 'os';
+import { createRequire } from 'module';
+import { fileURLToPath } from 'url';
+import { nodeFileTrace } from '../out/node-file-trace.js';
+
 const { writeFile } = promises;
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const randomTmpId = Math.random().toString().slice(2);
 const tmpdir = path.resolve(
@@ -22,7 +27,7 @@ const ignoreCategories = new Set([
   'Duplicate named capturing groups',
 ]);
 
-async function runTests(importPath) {
+function runTests(importPath) {
   const { tests } = require(importPath);
   for (const category of tests) {
     const subtests = category.subtests || [category];
@@ -32,7 +37,10 @@ async function runTests(importPath) {
         continue;
       }
       it(`should correctly trace ${importPath} "${category.name}" "${name}"`, async () => {
-        let str = exec.toString().replace('{/*', '{').replace('*/}', '}');
+        let str = exec
+          .toString()
+          .replace(/\{\s*\/\*/, '{')
+          .replace(/\*\/\s*\}/, '}');
         str = `var obj = { exec: ${str} }`;
         const filename = path.join(
           tmpdir,

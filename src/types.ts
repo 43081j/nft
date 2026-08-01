@@ -1,4 +1,4 @@
-import { Job } from './node-file-trace';
+import { Job } from './node-file-trace.js';
 
 export interface Stats {
   isFile(): boolean;

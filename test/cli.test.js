@@ -1,8 +1,13 @@
-const { promisify } = require('util');
-const { existsSync } = require('fs');
-const { join } = require('path');
-const cp = require('child_process');
+import { jest } from '@jest/globals';
+import { promisify } from 'util';
+import { existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import cp from 'child_process';
+import cli from '../out/cli.js';
+
 const exec = promisify(cp.exec);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 jest.setTimeout(15_000);
 
@@ -71,34 +76,30 @@ it('should correctly print help when unknown action is used', async () => {
   }
   expect(stdout).toMatch('$ nft [command] <file>');
 });
-it('[coverage] should correctly print trace from required cli', async () => {
+it('[coverage] should correctly print trace from imported cli', async () => {
   // This test is only here to satisfy code coverage
-  const cli = require('../out/cli.js');
   const files = join(__dirname, inputjs);
   const stdout = await cli('print', files);
   expect(stdout).toMatch(normalizeOutput(outputjs));
 });
 
-it('[coverage] should correctly build dist from required cli', async () => {
+it('[coverage] should correctly build dist from imported cli', async () => {
   // This test is only here to satisfy code coverage
-  const cli = require('../out/cli.js');
   const files = join(__dirname, inputjs);
   await cli('build', files);
   const found = existsSync(join(__dirname, outputjs));
   expect(found).toBe(true);
 });
 
-it('[coverage] should correctly show size in bytes from required cli', async () => {
+it('[coverage] should correctly show size in bytes from imported cli', async () => {
   // This test is only here to satisfy code coverage
-  const cli = require('../out/cli.js');
   const files = join(__dirname, inputjs);
   const stdout = await cli('size', files);
   expect(stdout).toMatch('bytes total');
 });
 
-it('[coverage] should correctly show why from required cli', async () => {
+it('[coverage] should correctly show why from imported cli', async () => {
   // This test is only here to satisfy code coverage
-  const cli = require('../out/cli.js');
   const entrypoint = join(__dirname, inputjs);
   const exitpoint = join(__dirname, outputjs);
   const cwd = __dirname;
@@ -110,7 +111,6 @@ it('[coverage] should correctly show why from required cli', async () => {
 
 it('[coverage] should correctly print help when unknown action is used', async () => {
   // This test is only here to satisfy code coverage
-  const cli = require('../out/cli.js');
   const files = join(__dirname, inputjs);
   const stdout = await cli('unknown', files);
   expect(stdout).toMatch('$ nft [command] <file>');

@@ -1,8 +1,8 @@
 import os from 'os';
 import path from 'path';
 import { glob } from 'glob';
-import { getPackageBase } from './get-package-base';
-import { Job } from '../node-file-trace';
+import { getPackageBase } from './get-package-base.js';
+import { Job } from '../node-file-trace.js';
 
 let sharedlibGlob = '';
 switch (os.platform()) {

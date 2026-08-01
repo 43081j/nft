@@ -1,8 +1,33 @@
-const fs = require('fs');
-const { join, relative } = require('path');
-const { nodeFileTrace } = require('../out/node-file-trace');
-const gracefulFS = require('graceful-fs');
-const analyze = require('../out/analyze.js').default;
+import { jest } from '@jest/globals';
+import fs from 'fs';
+import { join, relative, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import actualAnalyze from '../out/analyze.js';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+jest.unstable_mockModule('../out/analyze.js', () => ({
+  default: jest.fn(actualAnalyze),
+}));
+
+jest.unstable_mockModule('graceful-fs', () => {
+  const originalModule = jest.requireActual('graceful-fs');
+
+  const mocked = {
+    ...originalModule,
+    promises: {
+      ...originalModule.promises,
+      stat: jest.fn(originalModule.promises.stat),
+      readFile: jest.fn(originalModule.promises.readFile),
+      readlink: jest.fn(originalModule.promises.readlink),
+    },
+  };
+  return { default: mocked, ...mocked };
+});
+
+const { nodeFileTrace } = await import('../out/node-file-trace.js');
+const gracefulFS = (await import('graceful-fs')).default;
+const analyze = (await import('../out/analyze.js')).default;
 
 const stat = gracefulFS.promises.stat;
 const readlink = gracefulFS.promises.readlink;
@@ -48,29 +73,6 @@ const unitTests = [
   ...unitTestDirs.map((testName) => ({ testName, isRoot: false })),
   ...unitTestDirs.map((testName) => ({ testName, isRoot: true })),
 ];
-
-jest.mock('../out/analyze.js', () => {
-  const originalModule = jest.requireActual('../out/analyze.js').default;
-
-  return {
-    __esModule: true,
-    default: jest.fn(originalModule),
-  };
-});
-
-jest.mock('graceful-fs', () => {
-  const originalModule = jest.requireActual('graceful-fs');
-
-  return {
-    ...originalModule,
-    promises: {
-      ...originalModule.promises,
-      stat: jest.fn(originalModule.promises.stat),
-      readFile: jest.fn(originalModule.promises.readFile),
-      readlink: jest.fn(originalModule.promises.readlink),
-    },
-  };
-});
 
 function resetFileIOMocks() {
   analyze.mockClear();

@@ -1,5 +1,5 @@
 import { walk } from 'estree-walker';
-import { Ast, Node as ESNode } from './types';
+import { Ast, Node as ESNode } from './types.js';
 import {
   SimpleCallExpression,
   Node,
@@ -656,7 +656,8 @@ export function handleWrappers(ast: Ast) {
                   } else if ('callee' in parent && parent.callee === node) {
                     parent.callee = replacement;
                   } else if (
-                    'arguments' in parent &&
+                    (parent.type === 'CallExpression' ||
+                      parent.type === 'NewExpression') &&
                     parent.arguments.some((arg) => arg === node)
                   ) {
                     parent.arguments = parent.arguments.map((arg) =>

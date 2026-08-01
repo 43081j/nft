@@ -14,12 +14,15 @@ export interface ConditionalValue {
 
 export type EvaluatedValue = StaticValue | ConditionalValue | undefined;
 
+declare module 'estree' {
+  interface BaseNode {
+    start?: number;
+    end?: number;
+    [propName: string]: any;
+  }
+}
+
 /**
  * A more lax version of the 'estree' Node type
  */
-export interface Node {
-  start: number;
-  end: number;
-  type: ESTreeNode['type'];
-  [propName: string]: any;
-}
+export type Node = ESTreeNode;

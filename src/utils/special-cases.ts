@@ -1,10 +1,11 @@
 import { resolve, dirname, relative } from 'path';
 import { existsSync } from 'fs';
-import resolveDependency from '../resolve-dependency';
-import { getPackageName } from './get-package-base';
-import { readFileSync } from 'graceful-fs';
-import { Job } from '../node-file-trace';
-import { Ast } from './types';
+import resolveDependency from '../resolve-dependency.js';
+import { getPackageName } from './get-package-base.js';
+import fs from 'graceful-fs';
+const { readFileSync } = fs;
+import { Job } from '../node-file-trace.js';
+import { Ast } from './types.js';
 type Node = Ast['body'][0];
 
 const specialCases: Record<string, (o: SpecialCaseOpts) => void> = {

@@ -1,9 +1,14 @@
 import path from 'path';
 import fs from 'graceful-fs';
+import { createRequire } from 'module';
+
+const dynamicRequire = createRequire(import.meta.url);
 
 // pregyp
-const versioning = require('@mapbox/node-pre-gyp/lib/util/versioning.js');
-const napi = require('@mapbox/node-pre-gyp/lib/util/napi.js');
+//@ts-ignore
+import versioning from '@mapbox/node-pre-gyp/lib/util/versioning.js';
+//@ts-ignore
+import napi from '@mapbox/node-pre-gyp/lib/util/napi.js';
 const pregypFind = (package_json_path: string, opts: any) => {
   const package_json = JSON.parse(
     fs.readFileSync(package_json_path).toString(),
@@ -52,7 +57,7 @@ function findCompiledModule(basePath: string, specList: Spec[]): Spec | null {
     var spec = specList_1[_i];
     if (ext == spec.ext) {
       try {
-        spec.path = eval('require.resolve(basePath)');
+        spec.path = dynamicRequire.resolve(basePath);
         return spec;
       } catch (err) {
         resolvedList.push(basePath);
@@ -69,7 +74,7 @@ function findCompiledModule(basePath: string, specList: Spec[]): Spec | null {
       var pathParts = _c[_b];
       var resolvedPath = path.resolve.apply(path, pathParts);
       try {
-        spec.path = eval('require.resolve(resolvedPath)');
+        spec.path = dynamicRequire.resolve(resolvedPath);
       } catch (err) {
         resolvedList.push(resolvedPath);
         continue;

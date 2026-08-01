@@ -3,13 +3,14 @@ import {
   NodeFileTraceResult,
   NodeFileTraceReasons,
   NodeFileTraceReasonType,
-} from './types';
+} from './types.js';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'path';
-import analyze, { AnalyzeResult } from './analyze';
-import resolveDependency, { NotFoundError } from './resolve-dependency';
-import { isMatch } from 'picomatch';
-import { sharedLibEmit } from './utils/sharedlib-emit';
-import { CachedFileSystem } from './fs';
+import analyze, { AnalyzeResult } from './analyze.js';
+import resolveDependency, { NotFoundError } from './resolve-dependency.js';
+import picomatch from 'picomatch';
+const { isMatch } = picomatch;
+import { sharedLibEmit } from './utils/sharedlib-emit.js';
+import { CachedFileSystem } from './fs.js';
 
 function inPath(path: string, parent: string) {
   const pathWithSep = join(parent, sep);

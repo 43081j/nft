@@ -7,45 +7,45 @@ import {
   FUNCTION,
   WILDCARD,
   wildcardRegEx,
-} from './utils/static-eval';
+} from './utils/static-eval.js';
 import { Parser } from 'acorn';
 import bindings from 'bindings';
-import { isIdentifierRead, isLoop, isVarLoop } from './utils/ast-helpers';
+import { isIdentifierRead, isLoop, isVarLoop } from './utils/ast-helpers.js';
 import { glob } from 'glob';
-import { getPackageBase } from './utils/get-package-base';
-import { pregyp, nbind } from './utils/binary-locators';
+import { getPackageBase } from './utils/get-package-base.js';
+import { pregyp, nbind } from './utils/binary-locators.js';
 import {
   normalizeDefaultRequire,
   normalizeWildcardRequire,
-} from './utils/interop-require';
-import handleSpecialCases from './utils/special-cases';
-import { Node } from './utils/types';
+} from './utils/interop-require.js';
+import handleSpecialCases from './utils/special-cases.js';
+import { Node } from './utils/types.js';
 import resolve from './resolve-dependency.js';
 //@ts-ignore
 import nodeGypBuild from 'node-gyp-build';
 //@ts-ignore
 import mapboxPregyp from '@mapbox/node-pre-gyp';
-import { Job } from './node-file-trace';
+import { Job } from './node-file-trace.js';
 import { fileURLToPath, pathToFileURL, URL } from 'url';
+import { createRequire } from 'module';
+//@ts-ignore
+import { importAttributesOrAssertions } from 'acorn-import-attributes';
+
+const require = createRequire(import.meta.url);
 
 // Note: these should be deprecated over time as they ship in Acorn core
-const acorn = Parser.extend(
-  //require("acorn-class-fields"),
-  //require("acorn-static-class-features"),
-  //require("acorn-private-class-elements")
-  require('acorn-import-attributes').importAttributesOrAssertions,
-);
+const acorn = Parser.extend(importAttributesOrAssertions);
 
 import os from 'os';
 import url from 'url';
-import { handleWrappers } from './utils/wrappers';
+import { handleWrappers } from './utils/wrappers.js';
 import resolveFrom from 'resolve-from';
 import {
   ConditionalValue,
   EvaluatedValue,
   StaticValue,
   Ast,
-} from './utils/types';
+} from './utils/types.js';
 
 const staticProcess = {
   cwd: () => {
@@ -375,7 +375,7 @@ export default async function analyze(
     ast = acorn.parse(code, {
       ecmaVersion: 'latest',
       allowReturnOutsideFunction: true,
-    });
+    }) as unknown as Node;
     isESM = false;
   } catch (e: any) {
     const isModule = e && e.message && e.message.includes('sourceType: module');
@@ -392,7 +392,7 @@ export default async function analyze(
         ecmaVersion: 'latest',
         sourceType: 'module',
         allowAwaitOutsideFunction: true,
-      });
+      }) as unknown as Node;
       isESM = true;
     } catch (e: any) {
       job.warnings.add(
@@ -1008,7 +1008,8 @@ export default async function analyze(
               if (
                 node.arguments.length &&
                 // TODO: We only cater for the case where the first argument is a string
-                node.arguments[0].type === 'Literal'
+                node.arguments[0].type === 'Literal' &&
+                typeof node.arguments[0].value === 'string'
               ) {
                 const pathOrSpecifier = node.arguments[0].value;
                 // It's a relative URL

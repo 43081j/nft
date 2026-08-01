@@ -1,11 +1,15 @@
-const { promises, readdirSync, mkdirSync } = require('fs');
-const path = require('path');
-const { nodeFileTrace } = require('../out/node-file-trace');
-const os = require('os');
-const { readFile, writeFile, readlink, symlink, copyFile, rm } = promises;
-const { fork, exec: execOrig } = require('child_process');
+import { jest } from '@jest/globals';
+import { promises, readdirSync, mkdirSync } from 'fs';
+import path from 'path';
+import os from 'os';
+import { fileURLToPath } from 'url';
+import { fork, exec as execOrig } from 'child_process';
+import { promisify } from 'util';
+import { nodeFileTrace } from '../out/node-file-trace.js';
 
-const exec = require('util').promisify(execOrig);
+const { readFile, writeFile, readlink, symlink, copyFile, rm } = promises;
+const exec = promisify(execOrig);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 jest.setTimeout(200_000);
 
@@ -108,6 +112,16 @@ for (const integrationTest of filteredTestsToRun) {
         }
       }),
     );
+    // the fixtures are CommonJS
+    await writeFile(
+      path.join(
+        tmpdir,
+        path.relative(traceBase, currentIntegrationDir),
+        'package.json',
+      ),
+      JSON.stringify({ type: 'commonjs' }),
+    );
+
     const testFile = path.join(
       tmpdir,
       path.relative(traceBase, currentIntegrationDir),
