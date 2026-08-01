@@ -208,6 +208,11 @@ globalBindings.global =
   globalBindings.globalThis =
     globalBindings;
 
+const globalVars: any = Object.create(null);
+Object.keys(globalBindings).forEach((name) => {
+  globalVars[name] = { value: globalBindings[name] };
+});
+
 // call expression triggers
 const TRIGGER = Symbol();
 (pregyp.find as any)[TRIGGER] = true;
@@ -443,6 +448,12 @@ export default async function analyze(
     (knownBindings.require.value as StaticValue).value.resolve[TRIGGER] = true;
   }
 
+  const vars: any = Object.assign(Object.create(null), globalVars);
+  Object.keys(knownBindings).forEach((name) => {
+    vars[name] = getKnownBinding(name);
+  });
+  vars['import.meta'] = { url: importMetaUrl };
+
   function setKnownBinding(
     name: string,
     value: StaticValue | ConditionalValue,
@@ -461,6 +472,7 @@ export default async function analyze(
       shadowDepth: 0,
       value: value,
     };
+    vars[name] = value;
   }
   function getKnownBinding(name: string): EvaluatedValue {
     const binding = knownBindings[name];
@@ -511,14 +523,6 @@ export default async function analyze(
   }
 
   async function computePureStaticValue(expr: Node, computeBranches = true) {
-    const vars = Object.create(null);
-    Object.keys(globalBindings).forEach((name) => {
-      vars[name] = { value: globalBindings[name] };
-    });
-    Object.keys(knownBindings).forEach((name) => {
-      vars[name] = getKnownBinding(name);
-    });
-    vars['import.meta'] = { url: importMetaUrl };
     // evaluate returns undefined for non-statically-analyzable
     const result = await evaluate(expr, vars, computeBranches);
     return result;
@@ -661,7 +665,10 @@ export default async function analyze(
       if (node.scope) {
         scope = node.scope;
         for (const id in node.scope.declarations) {
-          if (id in knownBindings) knownBindings[id].shadowDepth++;
+          if (id in knownBindings) {
+            knownBindings[id].shadowDepth++;
+            vars[id] = undefined;
+          }
         }
       }
 
@@ -1260,9 +1267,15 @@ export default async function analyze(
         }
         for (const id in node.scope.declarations) {
           if (id in knownBindings) {
-            if (knownBindings[id].shadowDepth > 0)
+            if (knownBindings[id].shadowDepth > 0) {
               knownBindings[id].shadowDepth--;
-            else delete knownBindings[id];
+              if (knownBindings[id].shadowDepth === 0)
+                vars[id] = knownBindings[id].value;
+            } else {
+              delete knownBindings[id];
+              if (id in globalVars) vars[id] = globalVars[id];
+              else delete vars[id];
+            }
           }
         }
       }

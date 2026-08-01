@@ -1,4 +1,9 @@
-import { EvaluatedValue, StaticValue, ConditionalValue, Node } from './types';
+import {
+  EvaluatedValue,
+  StaticValue,
+  ConditionalValue,
+  Node,
+} from './types.js';
 type Walk = (node: Node) => Promise<EvaluatedValue> | undefined;
 type State = { computeBranches: boolean; vars: Record<string, any> };
 
